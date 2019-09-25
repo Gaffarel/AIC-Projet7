@@ -1,0 +1,39 @@
+#! /bin/sh
+
+CURL=/usr/bin/curl
+DATE=/usr/bin/date
+#URL='http://192.168.0.220/wp-json/wp/v2/comments?after'
+URL='http://128.1.1.220/wp-json/wp/v2/comments?after'
+WARNING=4
+SPAM=10
+
+#################Créattion de la date - 4 heures#####################
+
+datedutest=$(date --date="4 hours ago" --iso-8601=seconds | cut -c1-19)
+
+#################Comptage du nombre de commentaire###################
+#EXTRACT=$(curl -X GET http://192.168.0.220/wp-json/wp/v2/comments?after=2019-09-15T07:00:00 | grep -wo "date" | wc -l)
+#EXTRACT=$(curl -X GET http://192.168.0.220/wp-json/wp/v2/comments?after=$datedutest | grep -wo "date" | wc -l)
+EXTRACT=$(curl -X GET $URL=$datedutest | grep -wo "date" | wc -l)
+
+#echo $EXTRACT
+#echo $datedutest
+
+#################Test de sortie de la sonde##########################
+
+if [ $EXTRACT -ge $SPAM  ]
+then
+	echo "CRITIQUE - Attention SPAM en cours !"
+	exit 2
+elif [ $EXTRACT -ge $WARNING ]
+then
+	echo "WARNING - Attention suspicion de SPAM"
+	exit 1
+elif [ $EXTRACT -lt $WARNING ]
+then
+	echo "OK - Pas de SPAM"
+	exit 0
+else
+	echo "UNKNOW - Problème sur la sonde"
+	exit 3
+fi
